@@ -1,14 +1,17 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Imported the router hook
 import whiteLogo from "../assets/icons/whitelogo-sarismart.png";
 
-export default function LaunchScreen({ onFinish }) {
+export default function LaunchScreen() {
+  const navigate = useNavigate(); // Initialized the navigator
+
   // Auto-advance to onboarding after 2.5 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
-      onFinish?.();
+      navigate("/onboarding"); // Triggers the router redirect
     }, 2500);
     return () => clearTimeout(timer);
-  }, [onFinish]);
+  }, [navigate]);
 
   return (
     <>

@@ -1,0 +1,67 @@
+/* src/components/BottomNav.css */
+
+.bottom-nav {
+  position: absolute;      /* Locks the navbar inside your phone-shell layout container */
+  bottom: 24px;            /* Sits perfectly right above the 24px gray home-indicator bar */
+  left: 0;
+  right: 0;
+  width: 100%;             /* Fits the exact 390px width of your simulated phone shell */
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;         /* Symmetrical padding inside the container */
+  height: 64px;            /* Unified explicit height to keep items perfectly aligned */
+  z-index: 50;
+}
+
+.bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-decoration: none;
+  color: #9a9a9a;
+  font-size: 11px;
+  font-weight: 600;
+  flex: 1;                 /* Allows equal distribution of tabs across the width */
+}
+
+.bottom-nav__item--active {
+  color: #EA6113;          /* Updated to perfectly match your theme's brand orange color */
+}
+
+.bottom-nav__icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.bottom-nav__label {
+  font-size: 11px;
+}
+
+.bottom-nav__center {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #EA6113;     /* Updated to perfectly match your theme's brand orange color */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -28px;       /* Pushes the center chat action up for a floating mobile tab look */
+  box-shadow: 0 4px 12px rgba(232, 130, 26, 0.3);
+  text-decoration: none;
+  z-index: 60;
+  transition: transform 0.1s ease;
+}
+
+.bottom-nav__center:active {
+  transform: scale(0.95);  /* Clean button press squish animation */
+}
+
+.bottom-nav__center-icon {
+  font-size: 24px;
+  color: #fff;
+  line-height: 1;
+}

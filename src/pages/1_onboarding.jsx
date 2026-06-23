@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Imported the router hook
 import slide1 from "../assets/images/onboarding-1.png";
 import slide2 from "../assets/images/onboarding-2.png";
 import slide3 from "../assets/images/onboarding-3.png";
@@ -6,17 +7,13 @@ import slide4 from "../assets/images/onboarding-4.png";
 
 // --- Awning SVG at top ---
 function Awning() {
-  // Draw striped rectangle, then place white scallop bumps on top at the bottom edge
-  // Each bump is an ellipse, creating the classic market awning look
-  const bumps = [40, 120, 200, 280, 360]; // cx positions for 5 bumps
+  const bumps = [40, 120, 200, 280, 360];
 
   return (
     <svg viewBox="0 0 400 105" xmlns="http://www.w3.org/2000/svg" className="awning-svg" style={{display:"block"}}>
-      {/* Stripes background */}
       {Array.from({ length: 20 }).map((_, i) => (
         <rect key={i} x={i * 20} y={0} width={20} height={105} fill={i % 2 === 0 ? "#E8821A" : "#F5C842"} />
       ))}
-      {/* White scallop bumps at the bottom — these sit ON TOP of the stripes */}
       {bumps.map((cx) => (
         <ellipse key={cx} cx={cx} cy={105} rx={44} ry={20} fill="white" />
       ))}
@@ -78,14 +75,15 @@ const slides = [
 ];
 
 // ---- Main Onboarding Component ----
-export default function Onboarding({ onFinish }) {
+export default function Onboarding() {
   const [current, setCurrent] = useState(0);
+  const navigate = useNavigate(); // Initialized the navigator
 
   const handleNext = () => {
     if (current < slides.length - 1) {
       setCurrent(current + 1);
     } else {
-      onFinish?.();
+      navigate("/home"); // Redirects to home if next is clicked on the last slide
     }
   };
 
@@ -320,7 +318,7 @@ export default function Onboarding({ onFinish }) {
             {slide.isLast ? (
               <div className="last-btn-row">
                 <button className="register-btn">Register</button>
-                <button className="signin-btn" onClick={onFinish}>Sign In</button>
+                <button className="signin-btn" onClick={() => navigate("/home")}>Sign In</button>
               </div>
             ) : (
               <button className="next-btn" onClick={handleNext}>Next</button>
