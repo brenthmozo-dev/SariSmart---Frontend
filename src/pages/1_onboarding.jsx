@@ -75,7 +75,7 @@ const slides = [
 ];
 
 // ---- Main Onboarding Component ----
-export default function Onboarding() {
+export default function Onboarding({ onGetStarted, onSignIn }) {
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate(); // Initialized the navigator
 
@@ -83,7 +83,25 @@ export default function Onboarding() {
     if (current < slides.length - 1) {
       setCurrent(current + 1);
     } else {
-      navigate("/home"); // Redirects to home if next is clicked on the last slide
+      if (onGetStarted) {
+        onGetStarted();
+      } else {
+        // Safe explicit route destination to the Create Setup Flow
+        navigate("/auth", { state: { initialMode: "register" } });
+      }
+    }
+  };
+
+  const handleSignInClick = (e) => {
+    // Prevent default button form trigger behaviors that refresh the layout screen
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (onSignIn) {
+      onSignIn();
+    } else {
+      // Explicitly routes to auth and can optionally pass view parameters 
+      navigate("/auth", { state: { initialMode: "login" } });
     }
   };
 
@@ -317,11 +335,17 @@ export default function Onboarding() {
 
             {slide.isLast ? (
               <div className="last-btn-row">
-                <button className="register-btn">Register</button>
-                <button className="signin-btn" onClick={() => navigate("/home")}>Sign In</button>
+                {/* Routes to Registration/Create account */}
+                <button type="button" className="register-btn" onClick={onGetStarted || (() => navigate("/auth", { state: { initialMode: "register" } }))}>
+                  Register
+                </button>
+                {/* Fixed explicitly with standard prevention events to block shell resets */}
+                <button type="button" className="signin-btn" onClick={handleSignInClick}>
+                  Sign In
+                </button>
               </div>
             ) : (
-              <button className="next-btn" onClick={handleNext}>Next</button>
+              <button type="button" className="next-btn" onClick={handleNext}>Next</button>
             )}
           </div>
 

@@ -1,40 +1,64 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import LaunchScreen from "./pages/0_LaunchScreen";
 import Onboarding from "./pages/1_onboarding";
 import HomePage from "./pages/2_Homepage";
 import InventoryPage from "./pages/3_InventoryPage";
 
-import CreateLoginSetup from './components/CreateLoginSetup/CreateLoginSetup';
-import LanguageSetup from './components/LanguageSetup/LanguageSetup';
-import SariChat from './components/SariChat/SariChat';
-import PhoneFrame from './components/PhoneFrame/PhoneFrame';
-import InsightsPage from './components/InsightsPage/InsightsPage'; 
-import ProductPerformance from './components/ProductPerformance/ProductPerformance'; 
+// Cleaned up imports pointing directly to your new pages folder
+import CreateLoginSetup from "./pages/CreateLoginSetup";
+import LanguageSetup from "./pages/LanguageSetup";
+import SariChat from "./pages/SariChat";
+import InsightsPage from "./pages/InsightsPage"; 
+import ProductPerformance from "./pages/ProductPerformance"; 
+
+// Reusable shell layout stays in the components folder
+import PhoneFrame from "./components/PhoneFrame/PhoneFrame";
+
+// A small sub-wrapper component to easily expose the navigate hook to your page props
+function AppRoutes() {
+  const navigate = useNavigate();
+
+  return (
+    <Routes>
+      {/* Default route shows the launch screen */}
+      <Route path="/" element={<LaunchScreen />} />
+
+      {/* Onboarding - Option B: Passing navigation callback */}
+      <Route 
+        path="/onboarding" 
+        element={<Onboarding onGetStarted={() => navigate("/auth")} />} 
+      />
+
+      {/* Auth & Setup Flow */}
+      <Route 
+        path="/auth" 
+        element={<CreateLoginSetup onFinish={() => navigate("/language")} />} 
+      />
+      <Route 
+        path="/language" 
+        element={<LanguageSetup onFinish={() => navigate("/home")} />} 
+      />
+
+      {/* Main App Pages */}
+      <Route path="/home" element={<HomePage onNavigate={(page) => navigate(`/${page}`)} />} />
+      <Route path="/inventory" element={<InventoryPage onNavigate={(page) => navigate(`/${page}`)} />} />
+      <Route path="/chat" element={<SariChat onNavigate={(page) => navigate(`/${page}`)} />} />
+      <Route path="/insights" element={<InsightsPage onNavigate={(page) => navigate(`/${page}`)} />} />
+      <Route 
+        path="/product-performance" 
+        element={<ProductPerformance onBack={() => navigate("/insights")} />} 
+      />
+
+      {/* Catch-all redirection */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Default route shows the launch screen */}
-        <Route path="/" element={<LaunchScreen />} />
-
-        {/* Onboarding */}
-        <Route path="/onboarding" element={<Onboarding />} />
-
-        {/* Auth */}
-        <Route path="/auth" element={<CreateLoginSetup />} />
-        <Route path="/language" element={<LanguageSetup />} />
-
-        {/* Main App Pages */}
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/inventory" element={<InventoryPage />} />
-        <Route path="/chat" element={<SariChat />} />
-        <Route path="/insights" element={<InsightsPage />} />
-        <Route path="/product-performance" element={<ProductPerformance />} />
-
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   );
 }
