@@ -420,8 +420,10 @@ export default function CreateLoginSetup({ onFinish }) {
                 type="button" 
                 className="social-icon-btn" 
                 onClick={() => {
-                  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-                  window.location.href = `${API_URL}/api/auth/google`;
+                  const base = import.meta.env.VITE_API_URL || "http://localhost:3000";
+                  const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+
+                  window.location.href = `${cleanBase}/api/auth/google`;
                 }}
               >
                 <img src={googleIcon} alt="Google" />
