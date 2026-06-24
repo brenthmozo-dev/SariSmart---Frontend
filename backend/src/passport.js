@@ -18,12 +18,16 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // Google OAuth 2.0 Strategy
+
+// Determine if we are on AWS or Local
+const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
+
 passport.use(
     new GoogleStrategy(
         {
-            clientID: GOOGLE_CLIENT_ID,
-            clientSecret: GOOGLE_CLIENT_SECRET,
-            callbackURL: `http://localhost:${PORT}/api/auth/google/callback`,
+            clientID: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            callbackURL: `${BACKEND_URL}/api/auth/google/callback`,
         },
         async (accessToken, refreshToken, profile, done) => {
             try {

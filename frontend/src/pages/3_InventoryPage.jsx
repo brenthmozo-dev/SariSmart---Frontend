@@ -6,6 +6,7 @@ import CategoryChips from "../components/CategoryChips";
 import ProductCard from "../components/ProductCard";
 import { RestockCard, RestockSection } from "../components/RestockCard";
 
+
 // ── IMPORT SHARED DATA (Replaces old hardcoded arrays) ──
 import { categories } from "../data/products";
 
@@ -24,8 +25,12 @@ export default function InventoryPage() {
   const handleAddProduct = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    // Use the environment variable, fallback to localhost
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
     try {
-      const response = await fetch("http://localhost:3000/api/products", {
+      const response = await fetch(`${API_URL}/api/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -51,10 +56,12 @@ export default function InventoryPage() {
       setIsSubmitting(false);
     }
   };
+  // Use the environment variable for API URL, fallback to localhost
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   // Fetch products from database on mount
   useEffect(() => {
-    fetch("http://localhost:3000/api/products")
+    fetch(`${API_URL}/api/products`)
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);

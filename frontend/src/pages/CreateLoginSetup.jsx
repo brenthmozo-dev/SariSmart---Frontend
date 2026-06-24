@@ -415,9 +415,18 @@ export default function CreateLoginSetup({ onFinish }) {
             </div>
 
             <div className="social-button-row">
-              <button type="button" className="social-icon-btn" onClick={() => window.location.href = 'http://localhost:3000/api/auth/google'}>
+              {/* Redirect all localhosts to hybrid set ups */}
+              <button 
+                type="button" 
+                className="social-icon-btn" 
+                onClick={() => {
+                  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+                  window.location.href = `${API_URL}/api/auth/google`;
+                }}
+              >
                 <img src={googleIcon} alt="Google" />
               </button>
+              
               <button type="button" className="social-icon-btn">
                 <img src={fbIcon} alt="Facebook" />
               </button>
