@@ -1,10 +1,10 @@
 import { useState } from "react";
 import "./ProfilePage.css";
-import homeIcon from "../Assets/homeIcon.png";
-import invenIcon from "../Assets/invenIcon.png";
-import profileIcon from "../Assets/profileIcon.png";
-import statsIcon2 from "../Assets/statsIcon2.png";
-import whiteSari from "../Assets/transparentSari.png";
+import homeIcon from "../../assets/images/homeIcon.png";
+import invenIcon from "../../assets/images/invenIcon.png";
+import profileIcon from "../../assets/images/profileIcon.png";
+import statsIcon2 from "../../assets/images/statsIcon2.png";
+import whiteSari from "../../assets/images/transparentSari.png";
 
 const ORANGE = "#e07b39";
 const LOGOUT_ORANGE = "#e05c2a";
