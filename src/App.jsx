@@ -10,7 +10,7 @@ import LanguageSetup from "./pages/LanguageSetup";
 import SariChat from "./pages/SariChat.jsx";
 import InsightsPage from "./pages/InsightsPage"; 
 import ProductPerformance from "./pages/ProductPerformance"; 
-import ProfilePage from "./pages/ProfilePage"; // 1. ADDED THIS IMPORT
+import ProfilePage from "./pages/ProfilePage";
 
 // Reusable shell layout stays in the components folder
 import PhoneFrame from "./components/PhoneFrame/PhoneFrame";
@@ -50,8 +50,8 @@ function AppRoutes() {
         element={<ProductPerformance onBack={() => navigate("/insights")} />} 
       />
       
-      {/* 2. ADDED THIS PATH ROUTE */}
-      <Route path="/profile" element={<ProfilePage />} />
+      {/* FIXED: Now passes down the uniform onNavigate handler like your other app screens */}
+      <Route path="/profile" element={<ProfilePage onNavigate={(page) => navigate(`/${page}`)} />} />
 
       {/* Catch-all redirection */}
       <Route path="*" element={<Navigate to="/" replace />} />
