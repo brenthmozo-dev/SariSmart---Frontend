@@ -1,43 +1,63 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BottomNav from "../components/BottomNav";
 
-// ── Sample product data (replace with your real data/store later) ──
-const SAMPLE_PRODUCTS = [
-  { id: 1, name: "Coke Mismo 120 ML", price: 25 },
-  { id: 2, name: "Lucky Me Pancit Canton", price: 15 },
-  { id: 3, name: "SkyFlakes", price: 25 },
-  { id: 4, name: "Chippy BBQ", price: 15 },
-  { id: 5, name: "C2 Apple 230ml", price: 20 },
-];
-
 export default function AddTransactionPage({ onNavigate }) {
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: "Coke Mismo 120 ML", price: 25, qty: 2 },
-    { id: 2, name: "Lucky Me Pancit Canton", price: 15, qty: 3 },
-    { id: 3, name: "SkyFlakes", price: 25, qty: 2 },
-    { id: 4, name: "Coke Mismo 120 ML", price: 25, qty: 1 },
-  ]);
+  const [products, setProducts] = useState([]);
+  const [cartItems, setCartItems] = useState([]);
   const [search, setSearch] = useState("");
-  const [amountGiven, setAmountGiven] = useState("25.00");
+  const [amountGiven, setAmountGiven] = useState("");
   const [note, setNote] = useState("");
   const [showNoteInput, setShowNoteInput] = useState(false);
 
-  const filteredProducts = SAMPLE_PRODUCTS.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase()) && search.length > 0
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/products`)
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(data);
+      })
+      .catch((err) => {
+        console.error("Failed to load inventory:", err);
+      });
+  }, []);
+
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase()) && search.length > 0 && p.stock > 0
   );
 
   const updateQty = (id, delta) => {
     setCartItems(prev =>
       prev
-        .map(item => item.id === id ? { ...item, qty: item.qty + delta } : item)
+        .map(item => {
+          if (item._id === id) {
+            const newQty = item.qty + delta;
+            if (newQty > item.stock) {
+                alert("Not enough stock in inventory!");
+                return item;
+            }
+            return { ...item, qty: newQty };
+          }
+          return item;
+        })
         .filter(item => item.qty > 0)
     );
   };
 
   const addProduct = (product) => {
     setCartItems(prev => {
-      const existing = prev.find(i => i.id === product.id);
-      if (existing) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+      const existing = prev.find(i => i._id === product._id);
+      if (existing) {
+        if (existing.qty >= product.stock) {
+            alert("Not enough stock in inventory!");
+            return prev;
+        }
+        return prev.map(i => i._id === product._id ? { ...i, qty: i.qty + 1 } : i);
+      }
+      if (product.stock < 1) {
+          alert("Not enough stock in inventory!");
+          return prev;
+      }
       return [...prev, { ...product, qty: 1 }];
     });
     setSearch("");
@@ -49,6 +69,26 @@ export default function AddTransactionPage({ onNavigate }) {
   const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.qty, 0);
   const given = parseFloat(amountGiven) || 0;
   const change = given - subtotal;
+
+  const handleCompleteTransaction = () => {
+    if (cartItems.length === 0) {
+      alert("Please add items to the cart.");
+      return;
+    }
+    if (!amountGiven || amountGiven.trim() === "") {
+      alert("Amount given is required!");
+      return;
+    }
+    if (given < subtotal) {
+      alert("Amount given must be at least the subtotal!");
+      return;
+    }
+    alert("Transaction completed successfully!");
+    setCartItems([]);
+    setAmountGiven("");
+    setSearch("");
+    if (onNavigate) onNavigate('home');
+  };
 
   return (
     <>
@@ -499,7 +539,7 @@ export default function AddTransactionPage({ onNavigate }) {
               {filteredProducts.length > 0 && (
                 <div className="atp-dropdown">
                   {filteredProducts.map(p => (
-                    <div key={p.id} className="atp-dropdown-item" onClick={() => addProduct(p)}>
+                    <div key={p._id} className="atp-dropdown-item" onClick={() => addProduct(p)}>
                       <span>{p.name}</span>
                       <span className="atp-dropdown-price">₱{p.price}.00</span>
                     </div>
@@ -517,15 +557,15 @@ export default function AddTransactionPage({ onNavigate }) {
             {/* Cart list */}
             <div className="atp-cart-list">
               {cartItems.map((item, idx) => (
-                <div key={`${item.id}-${idx}`} className="atp-cart-item">
+                <div key={`${item._id}-${idx}`} className="atp-cart-item">
                   <div className="atp-item-img" />
                   <div className="atp-item-details">
                     <div className="atp-item-name">{item.name}</div>
                     <div className="atp-item-unit-price">₱{item.price}.00</div>
                     <div className="atp-qty-row">
-                      <button className="atp-qty-btn" onClick={() => updateQty(item.id, -1)}>−</button>
+                      <button className="atp-qty-btn" onClick={() => updateQty(item._id, -1)}>−</button>
                       <span className="atp-qty-val">{item.qty}</span>
-                      <button className="atp-qty-btn" onClick={() => updateQty(item.id, 1)}>+</button>
+                      <button className="atp-qty-btn" onClick={() => updateQty(item._id, 1)}>+</button>
                     </div>
                   </div>
                   <div className="atp-item-total">₱{(item.price * item.qty).toFixed(2)}</div>
@@ -581,7 +621,7 @@ export default function AddTransactionPage({ onNavigate }) {
             </div>
 
             {/* Complete Transaction */}
-            <button className="atp-complete-btn">
+            <button className="atp-complete-btn" onClick={handleCompleteTransaction}>
               Complete Transaction
             </button>
 
