@@ -1,5 +1,5 @@
 import express from 'express';
-import cors from 'cors';
+//import cors from 'cors'; commented out to let lambda do CORS
 import mongoose from 'mongoose';
 import { PORT, MONGO_URI, FRONTEND_URL } from './src/config.js';
 import { registerUser, loginUser, googleCallback } from './controllers/auth.js';
@@ -15,10 +15,12 @@ const bedrockClient = new BedrockRuntimeClient({ region: "ap-southeast-1" }); //
 //test for merging, can be removed afterwards
 
 // Middleware
+/*commented out below to let lambda do CORS 
 app.use(cors({
   origin: FRONTEND_URL,
   credentials: true,
-}));
+}));*/
+
 app.use(express.json());
 app.use(passport.initialize());
 
