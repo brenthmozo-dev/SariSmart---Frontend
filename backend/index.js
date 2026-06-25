@@ -12,6 +12,8 @@ import Product from "./models/product.js";
 const app = express();
 const bedrockClient = new BedrockRuntimeClient({ region: "ap-southeast-1" }); //initialized bedrock client
 
+//test for merging, can be removed afterwards
+
 // Middleware
 app.use(cors({
   origin: FRONTEND_URL,
