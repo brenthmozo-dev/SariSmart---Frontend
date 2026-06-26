@@ -50,7 +50,7 @@ export default function ProfilePage() {
   };
   //for exporting, with sample data
   const handleExportSales = () => {
-    console.log("!!! EXPORT BUTTON WAS PLAINLY CLICKED !!!");
+    alert("The button was definitely clicked!");
     const salesData = [
       { Date: "2026-06-24", Item: "Coke Litro", Quantity: 5, Total: 500 },
       { Date: "2026-06-25", Item: "Sardines", Quantity: 3, Total: 135 },
@@ -60,7 +60,7 @@ export default function ProfilePage() {
   };
 
   const handleExportInventory = () => {
-    console.log("!!! EXPORT BUTTON WAS PLAINLY CLICKED !!!");
+    alert("The button was definitely clicked!");
     const inventoryData = [
       { Item: "Coke Litro", Stock: 12, Price: 100, Category: "Beverages" },
       { Item: "Sardines", Stock: 24, Price: 45, Category: "Canned Goods" },
