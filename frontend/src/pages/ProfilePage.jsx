@@ -48,25 +48,115 @@ export default function ProfilePage() {
     
     setShowEditProfileModal(false);
   };
-  //for exporting, with sample data
-  const handleExportSales = () => {
-    alert("The button was definitely clicked!");
-    const salesData = [
-      { Date: "2026-06-24", Item: "Coke Litro", Quantity: 5, Total: 500 },
-      { Date: "2026-06-25", Item: "Sardines", Quantity: 3, Total: 135 },
-      { Date: "2026-06-26", Item: "Instant Noodles", Quantity: 10, Total: 180 }
-    ];
-    exportToCSV(salesData, "Sales_Report.csv");
+  // Handle True Sales Report Export from the Profile Page
+  const handleExportSales = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      
+      // Fetching from your dedicated transactions endpoint
+      const response = await fetch(`${API_URL}/api/transactions`);
+      
+      if (!response.ok) throw new Error("Failed to fetch transaction data");
+      const transactions = await response.json();
+
+      // Guard clause in case there are no sales yet
+      if (!transactions || transactions.length === 0) {
+        alert("No sales data available to export!");
+        return;
+      }
+
+      // Define financial headers
+      const headers = ["Date", "Time", "Receipt Number", "Total Amount (PHP)"];
+
+      // Map your live transaction data based on the shape found in HomePage
+      const rows = transactions.map(tx => {
+        const txDate = new Date(tx.createdAt).toLocaleDateString();
+        const txTime = new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        return [
+          txDate,
+          txTime,
+          `"${tx.number}"`, // Quotes prevent formatting issues with receipt strings
+          tx.total.toFixed(2)
+        ];
+      });
+
+      // Join everything with commas and newlines
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(e => e.join(","))
+      ].join("\n");
+
+      // Generate and trigger the download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      
+      link.setAttribute("href", url);
+      link.setAttribute("download", `SariSmart_SalesReport_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("Failed to export sales data. Ensure your backend /api/transactions route is active.");
+    }
   };
 
-  const handleExportInventory = () => {
-    alert("The button was definitely clicked!");
-    const inventoryData = [
-      { Item: "Coke Litro", Stock: 12, Price: 100, Category: "Beverages" },
-      { Item: "Sardines", Stock: 24, Price: 45, Category: "Canned Goods" },
-      { Item: "Instant Noodles", Stock: 50, Price: 18, Category: "Food" }
-    ];
-    exportToCSV(inventoryData, "Inventory_Report.csv");
+  // Handle Dynamic Inventory Export from the Profile Page
+  const handleExportInventory = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      
+      // Fetching from your products endpoint
+      const response = await fetch(`${API_URL}/api/products`);
+      
+      if (!response.ok) throw new Error("Failed to fetch inventory data");
+      const products = await response.json();
+
+      if (!products || products.length === 0) {
+        alert("No inventory data available to export!");
+        return;
+      }
+
+      // Define inventory headers
+      const headers = ["Product Name", "Category", "Price (PHP)", "Stock Quantity", "Restock Threshold"];
+
+      // Map your live product data
+      const rows = products.map(product => [
+        `"${product.name.replace(/"/g, '""')}"`, // Sanitizes quotes
+        `"${product.category}"`,
+        product.price.toFixed(2),
+        product.stock,
+        product.restockThreshold || 5
+      ]);
+
+      // Join everything with commas and newlines
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(e => e.join(","))
+      ].join("\n");
+
+      // Generate and trigger the download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      
+      link.setAttribute("href", url);
+      link.setAttribute("download", `SariSmart_Inventory_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("Failed to export inventory data. Please check your connection.");
+    }
   };
 
   const t = getTranslation(language);
