@@ -12,9 +12,18 @@ export default function ProfilePage() {
   // Toggle states matching the UI preferences panels
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [notifications, setNotifications] = useState(true);
-  const [aiSuggestions, setAiSuggestions] = useState(true);
-  const [restockAlerts, setRestockAlerts] = useState(true);
-  const [markupSuggestions, setMarkupSuggestions] = useState(true);
+  const [aiSuggestions, setAiSuggestions] = useState(() => {
+    const stored = localStorage.getItem('aiSuggestions');
+    return stored !== null ? stored === 'true' : true;
+  });
+  const [restockAlerts, setRestockAlerts] = useState(() => {
+    const stored = localStorage.getItem('restockAlerts');
+    return stored !== null ? stored === 'true' : true;
+  });
+  const [markupSuggestions, setMarkupSuggestions] = useState(() => {
+    const stored = localStorage.getItem('markupSuggestions');
+    return stored !== null ? stored === 'true' : true;
+  });
   
   const [language, setLanguage] = useState(localStorage.getItem("language") || "English");
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -598,7 +607,7 @@ export default function ProfilePage() {
                     </span>
                     {t.aiSuggestions}
                   </div>
-                  <div className={`toggle-switch-input ${aiSuggestions ? "active" : ""}`} onClick={() => setAiSuggestions(!aiSuggestions)}>
+                  <div className={`toggle-switch-input ${aiSuggestions ? "active" : ""}`} onClick={() => setAiSuggestions(prev => { const newVal = !prev; localStorage.setItem('aiSuggestions', newVal); return newVal; })}>
                     <div className="toggle-switch-handle" />
                   </div>
                 </div>
@@ -609,7 +618,7 @@ export default function ProfilePage() {
                     </span>
                     {t.restockAlerts}
                   </div>
-                  <div className={`toggle-switch-input ${restockAlerts ? "active" : ""}`} onClick={() => setRestockAlerts(!restockAlerts)}>
+                  <div className={`toggle-switch-input ${restockAlerts ? "active" : ""}`} onClick={() => setRestockAlerts(prev => { const newVal = !prev; localStorage.setItem('restockAlerts', newVal); return newVal; })}>
                     <div className="toggle-switch-handle" />
                   </div>
                 </div>
@@ -620,7 +629,7 @@ export default function ProfilePage() {
                     </span>
                     {t.markupSuggestions}
                   </div>
-                  <div className={`toggle-switch-input ${markupSuggestions ? "active" : ""}`} onClick={() => setMarkupSuggestions(!markupSuggestions)}>
+                  <div className={`toggle-switch-input ${markupSuggestions ? "active" : ""}`} onClick={() => setMarkupSuggestions(prev => { const newVal = !prev; localStorage.setItem('markupSuggestions', newVal); return newVal; })}>
                     <div className="toggle-switch-handle" />
                   </div>
                 </div>

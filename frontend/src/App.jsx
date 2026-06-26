@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import LaunchScreen from "./pages/0_LaunchScreen";
 import Onboarding from "./pages/1_onboarding";
@@ -17,8 +18,6 @@ import AddProductPage from "./pages/AddProductPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import TopSellingProductsPage from "./pages/TopSellingProductsPage"; // Import TopSellingProductsPage
 
-import EditProductPage from "./pages/EditProductPage"; 
-
 // Reusable shell layout stays in the components folder
 import PhoneFrame from "./components/PhoneFrame/PhoneFrame";
 
@@ -26,6 +25,25 @@ import PhoneFrame from "./components/PhoneFrame/PhoneFrame";
 function AppRoutes() {
   const navigate = useNavigate();
 
+  // 1. Global Dark Mode State (Reads from browser storage on load)
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("darkMode") === "true";
+  });
+
+  // 2. Global Effect (Applies dark-theme classes to the browser root)
+  useEffect(() => {
+    const root = document.documentElement;
+    if (darkMode) {
+      root.classList.add("dark-theme");
+      document.body.classList.add("dark-theme");
+      localStorage.setItem("darkMode", "true");
+    } else {
+      root.classList.remove("dark-theme");
+      document.body.classList.remove("dark-theme");
+      localStorage.setItem("darkMode", "false");
+    }
+  }, [darkMode]);
+  console.log("APP LEVEL - Dark Mode is:", darkMode);
   return (
     <Routes>
       {/* Default route shows the launch screen */}
@@ -72,7 +90,6 @@ function AppRoutes() {
 
       {/* Add New Product View screen route configuration */}
       <Route path="/add-product" element={<AddProductPage onNavigate={(page) => navigate(`/${page}`)} />} />
-      <Route path="/edit-product/:id" element={<EditProductPage />} />
 
       {/* Catch-all redirection */}
       <Route path="*" element={<Navigate to="/" replace />} />
