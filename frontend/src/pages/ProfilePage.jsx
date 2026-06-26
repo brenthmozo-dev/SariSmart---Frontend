@@ -1,5 +1,5 @@
 import { apiFetch } from "../utils/api.js";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Imported navigate hook
 import BottomNav from "../components/BottomNav";
 import { getTranslation } from "../data/translations";
@@ -12,18 +12,26 @@ export default function ProfilePage() {
   // Toggle states matching the UI preferences panels
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [notifications, setNotifications] = useState(true);
-  const [aiSuggestions, setAiSuggestions] = useState(() => {
-    const stored = localStorage.getItem('aiSuggestions');
-    return stored !== null ? stored === 'true' : true;
-  });
-  const [restockAlerts, setRestockAlerts] = useState(() => {
-    const stored = localStorage.getItem('restockAlerts');
-    return stored !== null ? stored === 'true' : true;
-  });
-  const [markupSuggestions, setMarkupSuggestions] = useState(() => {
-    const stored = localStorage.getItem('markupSuggestions');
-    return stored !== null ? stored === 'true' : true;
-  });
+
+  // Initialize AI preference states (default true)
+  const [aiSuggestions, setAiSuggestions] = useState(true);
+  const [restockAlerts, setRestockAlerts] = useState(true);
+  const [markupSuggestions, setMarkupSuggestions] = useState(true);
+
+  // Load persisted preferences on component mount
+  useEffect(() => {
+    const ai = localStorage.getItem('aiSuggestions');
+    if (ai !== null) setAiSuggestions(ai === 'true');
+    const restock = localStorage.getItem('restockAlerts');
+    if (restock !== null) setRestockAlerts(restock === 'true');
+    const markup = localStorage.getItem('markupSuggestions');
+    if (markup !== null) setMarkupSuggestions(markup === 'true');
+  }, []);
+
+  // Sync preference states to localStorage
+  useEffect(() => localStorage.setItem('aiSuggestions', aiSuggestions), [aiSuggestions]);
+  useEffect(() => localStorage.setItem('restockAlerts', restockAlerts), [restockAlerts]);
+  useEffect(() => localStorage.setItem('markupSuggestions', markupSuggestions), [markupSuggestions]);
   
   const [language, setLanguage] = useState(localStorage.getItem("language") || "English");
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -607,7 +615,8 @@ export default function ProfilePage() {
                     </span>
                     {t.aiSuggestions}
                   </div>
-                  <div className={`toggle-switch-input ${aiSuggestions ? "active" : ""}`} onClick={() => setAiSuggestions(prev => { const newVal = !prev; localStorage.setItem('aiSuggestions', newVal); return newVal; })}>
+                  <div className={`toggle-switch-input ${aiSuggestions ? "active" : ""}`} onClick={() => setAiSuggestions(prev => !prev)}>
+
                     <div className="toggle-switch-handle" />
                   </div>
                 </div>
@@ -618,7 +627,7 @@ export default function ProfilePage() {
                     </span>
                     {t.restockAlerts}
                   </div>
-                  <div className={`toggle-switch-input ${restockAlerts ? "active" : ""}`} onClick={() => setRestockAlerts(prev => { const newVal = !prev; localStorage.setItem('restockAlerts', newVal); return newVal; })}>
+                  <div className={`toggle-switch-input ${restockAlerts ? "active" : ""}`} onClick={() => setRestockAlerts(!restockAlerts)}>
                     <div className="toggle-switch-handle" />
                   </div>
                 </div>
@@ -629,7 +638,7 @@ export default function ProfilePage() {
                     </span>
                     {t.markupSuggestions}
                   </div>
-                  <div className={`toggle-switch-input ${markupSuggestions ? "active" : ""}`} onClick={() => setMarkupSuggestions(prev => { const newVal = !prev; localStorage.setItem('markupSuggestions', newVal); return newVal; })}>
+                  <div className={`toggle-switch-input ${markupSuggestions ? "active" : ""}`} onClick={() => setMarkupSuggestions(!markupSuggestions)}>
                     <div className="toggle-switch-handle" />
                   </div>
                 </div>
