@@ -546,7 +546,7 @@ export default function ProfilePage() {
                   </div>
                   <div className="item-right-block"><span>❯</span></div>
                 </div>
-                <div className="settings-row-item clickable-row">
+                <div className="settings-row-item clickable-row" onClick={handleExportInventory}>
                   <div className="item-left-block">
                     <span className="item-icon-wrapper">
                       <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
