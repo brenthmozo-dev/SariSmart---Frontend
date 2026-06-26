@@ -1,48 +1,68 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import BottomNav from "../components/BottomNav";
-
-const SAMPLE_PRODUCTS = [
-  { id: 1, name: "Coke Mismo 120 ML",     price: 25, image: null },
-  { id: 2, name: "Lucky Me Pancit Canton", price: 15, image: null },
-  { id: 3, name: "SkyFlakes",              price: 25, image: null },
-  { id: 4, name: "Chippy BBQ",             price: 15, image: null },
-  { id: 5, name: "C2 Apple 230ml",         price: 20, image: null },
-];
+import { getTranslation } from "../data/translations";
 
 export default function AddTransactionPage({ onNavigate }) {
-  const navigate = useNavigate();
-
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: "Coke Mismo 120 ML",     price: 25, qty: 2, image: null },
-    { id: 2, name: "Lucky Me Pancit Canton", price: 15, qty: 3, image: null },
-    { id: 3, name: "SkyFlakes",              price: 25, qty: 2, image: null },
-    { id: 4, name: "Coke Mismo 120 ML",      price: 25, qty: 1, image: null },
-  ]);
-  const [search, setSearch]               = useState("");
-  const [amountGiven, setAmountGiven]     = useState("");
-  const [note, setNote]                   = useState("");
+  const t = getTranslation();
+  const [products, setProducts] = useState([]);
+  const [cartItems, setCartItems] = useState([]);
+  const [search, setSearch] = useState("");
+  const [amountGiven, setAmountGiven] = useState("");
+  const [note, setNote] = useState("");
   const [showNoteInput, setShowNoteInput] = useState(false);
   
   // State to control visibility of the success modal
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const filteredProducts = SAMPLE_PRODUCTS.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase()) && search.length > 0
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/products`)
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(data);
+      })
+      .catch((err) => {
+        console.error("Failed to load inventory:", err);
+      });
+  }, []);
+
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase()) && search.length > 0 && p.stock > 0
   );
 
   const updateQty = (id, idx, delta) => {
     setCartItems(prev =>
       prev
-        .map((item, i) => i === idx ? { ...item, qty: item.qty + delta } : item)
+        .map(item => {
+          if (item._id === id) {
+            const newQty = item.qty + delta;
+            if (newQty > item.stock) {
+                alert(t.notEnoughStock);
+                return item;
+            }
+            return { ...item, qty: newQty };
+          }
+          return item;
+        })
         .filter(item => item.qty > 0)
     );
   };
 
   const addProduct = (product) => {
     setCartItems(prev => {
-      const existing = prev.find(i => i.id === product.id);
-      if (existing) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+      const existing = prev.find(i => i._id === product._id);
+      if (existing) {
+        if (existing.qty >= product.stock) {
+            alert(t.notEnoughStock);
+            return prev;
+        }
+        return prev.map(i => i._id === product._id ? { ...i, qty: i.qty + 1 } : i);
+      }
+      if (product.stock < 1) {
+          alert(t.notEnoughStock);
+          return prev;
+      }
       return [...prev, { ...product, qty: 1 }];
     });
     setSearch("");
@@ -64,6 +84,52 @@ export default function AddTransactionPage({ onNavigate }) {
   const handleViewTransactions = () => {
     if (onNavigate) onNavigate("transactions");
     else navigate("/transactions");
+  };
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCompleteTransaction = async () => {
+    if (cartItems.length === 0) {
+      alert(t.pleaseAddItems);
+      return;
+    }
+    if (!amountGiven || amountGiven.trim() === "") {
+      alert(t.amountGivenRequired);
+      return;
+    }
+    if (given < subtotal) {
+      alert(t.amountMustBeAtLeast);
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${API_URL}/api/transactions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itemsList: cartItems.map(i => ({ _id: i._id || i.id, name: i.name, qty: i.qty, price: i.price, cost: i.costPrice || 0 })),
+          total: subtotal,
+          amountGiven: given,
+          change: change
+        })
+      });
+
+      if (response.ok) {
+        setShowSuccessModal(true);
+        // Clear cart in background
+        setCartItems([]);
+        setAmountGiven("");
+        setSearch("");
+      } else {
+        alert(t.failedToSave);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(t.errorSaving);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -141,15 +207,15 @@ export default function AddTransactionPage({ onNavigate }) {
         .atp-search-input {
           width: 100%; height: 46px;
           border-radius: 12px;
-          border: 1.5px solid #E8E8E8;
-          background: #F6F6F6;
+          border: 1.5px solid #E8821A;
+          background: white;
           padding: 0 14px 0 40px;
           font-size: 14px;
           font-family: 'Manrope', sans-serif;
-          font-weight: 500;
-          color: #333; outline: none;
+          font-weight: 700;
+          color: #E8821A; outline: none;
         }
-        .atp-search-input::placeholder { color: #aaa; }
+        .atp-search-input::placeholder { color: #F0A56C; }
         .atp-search-icon {
           position: absolute; left: 12px; top: 50%;
           transform: translateY(-50%); color: #aaa;
@@ -280,9 +346,12 @@ export default function AddTransactionPage({ onNavigate }) {
           padding: 10px 14px;
           border-radius: 10px;
           border: 1.5px solid #E8821A;
+          background: white;
           font-size: 14px; font-family: 'Manrope', sans-serif;
-          outline: none; color: #333;
+          font-weight: 700;
+          outline: none; color: #E8821A;
         }
+        .atp-note-input::placeholder { color: #F0A56C; }
 
         /* Summary box */
         .atp-summary-box {
@@ -311,18 +380,19 @@ export default function AddTransactionPage({ onNavigate }) {
         }
         .atp-amount-input-wrap {
           display: flex; align-items: center; gap: 6px;
-          border: 1.5px solid #E8E8E8;
+          border: 1.5px solid #E8821A;
           border-radius: 10px; padding: 10px 14px;
           margin-bottom: 14px; background: white;
         }
         .atp-amount-input-wrap:focus-within { border-color: #E8821A; }
-        .atp-peso-sign { font-size: 16px; font-weight: 700; color: #333; }
+        .atp-peso-sign { font-size: 16px; font-weight: 700; color: #E8821A; }
         .atp-amount-input {
           border: none; outline: none;
-          font-size: 18px; font-weight: 700; color: #1a1a1a;
+          font-size: 18px; font-weight: 700; color: #E8821A;
           font-family: 'Manrope', sans-serif;
           width: 100%; background: transparent;
         }
+        .atp-amount-input::placeholder { color: #F0A56C; }
         .atp-change-label { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
         .atp-change-display {
           display: flex; align-items: center; gap: 6px;
@@ -467,7 +537,7 @@ export default function AddTransactionPage({ onNavigate }) {
                 <path d="M19 12H5M5 12L12 19M5 12L12 5"/>
               </svg>
             </button>
-            <span className="atp-title">Add Transaction</span>
+            <span className="atp-title">{t.addTransaction}</span>
           </div>
 
           <div className="atp-scroll">
@@ -482,7 +552,7 @@ export default function AddTransactionPage({ onNavigate }) {
                 </span>
                 <input
                   className="atp-search-input"
-                  placeholder="Search Products..."
+                  placeholder={t.searchProducts}
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                 />
@@ -497,7 +567,7 @@ export default function AddTransactionPage({ onNavigate }) {
               {filteredProducts.length > 0 && (
                 <div className="atp-dropdown">
                   {filteredProducts.map(p => (
-                    <div key={p.id} className="atp-dropdown-item" onClick={() => addProduct(p)}>
+                    <div key={p._id} className="atp-dropdown-item" onClick={() => addProduct(p)}>
                       <span>{p.name}</span>
                       <span className="atp-dropdown-price">₱{p.price}.00</span>
                     </div>
@@ -508,8 +578,8 @@ export default function AddTransactionPage({ onNavigate }) {
 
             {/* Customer Items label */}
             <div className="atp-section-row">
-              <span className="atp-section-label">Customer Items</span>
-              <button className="atp-clear-btn" onClick={clearCart}>Clear</button>
+              <span className="atp-section-label">{t.customerItems}</span>
+              <button className="atp-clear-btn" onClick={clearCart}>{t.clear}</button>
             </div>
 
             {/* Cart list */}
@@ -550,12 +620,12 @@ export default function AddTransactionPage({ onNavigate }) {
             {/* Add Note */}
             {!showNoteInput ? (
               <button className="atp-add-note" onClick={() => setShowNoteInput(true)}>
-                +Add Note
+                {t.addNote}
               </button>
             ) : (
               <input
                 className="atp-note-input"
-                placeholder="Add a note..."
+                placeholder={t.addANote}
                 value={note}
                 onChange={e => setNote(e.target.value)}
               />
@@ -564,18 +634,18 @@ export default function AddTransactionPage({ onNavigate }) {
             {/* Summary */}
             <div className="atp-summary-box">
               <div className="atp-summary-row">
-                <span className="atp-summary-label">Total Items</span>
+                <span className="atp-summary-label">{t.totalItems}</span>
                 <span className="atp-summary-value">{totalItems}</span>
               </div>
               <div className="atp-summary-row">
-                <span className="atp-summary-label">Subtotal</span>
+                <span className="atp-summary-label">{t.subtotal}</span>
                 <span className="atp-summary-value">₱{subtotal.toFixed(2)}</span>
               </div>
             </div>
 
             {/* Amount Given + Change */}
             <div className="atp-payment-box">
-              <div className="atp-payment-label">Amount Given</div>
+              <div className="atp-payment-label">{t.amountGiven}</div>
               <div className="atp-amount-input-wrap">
                 <span className="atp-peso-sign">₱</span>
                 <input
@@ -586,7 +656,7 @@ export default function AddTransactionPage({ onNavigate }) {
                   onChange={e => setAmountGiven(e.target.value)}
                 />
               </div>
-              <div className="atp-change-label">Change</div>
+              <div className="atp-change-label">{t.change}</div>
               <div className="atp-change-display">
                 <span className="atp-peso-sign">₱</span>
                 <span className={change >= 0 ? "atp-change-positive" : "atp-change-negative"}>
@@ -595,8 +665,9 @@ export default function AddTransactionPage({ onNavigate }) {
               </div>
             </div>
 
-            <button className="atp-complete-btn" onClick={() => setShowSuccessModal(true)}>
-              Complete Transaction
+            {/* Complete Transaction */}
+            <button className="atp-complete-btn" onClick={handleCompleteTransaction} disabled={isSubmitting}>
+              {isSubmitting ? t.completing : t.completeTransaction}
             </button>
 
           </div>
@@ -610,21 +681,21 @@ export default function AddTransactionPage({ onNavigate }) {
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 </div>
-                <h3 className="success-heading">Transaction Saved!</h3>
-                <p className="success-sub">The transaction was successfully recorded.</p>
+                <h3 className="success-heading">{t.transactionSaved}</h3>
+                <p className="success-sub">{t.transactionRecorded}</p>
                 
                 <div className="success-divider" />
 
                 <div className="success-metric-row">
-                  <span>Total Bill Amount</span>
+                  <span>{t.totalBillAmount}</span>
                   <span style={{ color: '#1a1a1a', fontWeight: 700 }}>₱{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="success-metric-row">
-                  <span>Cash Received</span>
+                  <span>{t.cashReceived}</span>
                   <span style={{ color: '#1a1a1a', fontWeight: 700 }}>₱{given.toFixed(2)}</span>
                 </div>
                 <div className="success-metric-row highlight">
-                  <span>Change to Give</span>
+                  <span>{t.changeToGive}</span>
                   <span>₱{showPayment ? change.toFixed(2) : "0.00"}</span>
                 </div>
 
@@ -633,7 +704,7 @@ export default function AddTransactionPage({ onNavigate }) {
                   style={{ margin: 0, width: "100%" }} 
                   onClick={handleBack}
                 >
-                  Back to Dashboard
+                  {t.backToDashboard}
                 </button>
 
                 {/* Wireframe Secondary Link Option */}
@@ -641,7 +712,7 @@ export default function AddTransactionPage({ onNavigate }) {
                   className="success-secondary-btn" 
                   onClick={handleViewTransactions}
                 >
-                  View Today's Transaction
+                  {t.viewTodaysTransaction}
                 </button>
               </div>
             </div>
