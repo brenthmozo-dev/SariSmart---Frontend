@@ -75,7 +75,20 @@ export const getInsights = async (req, res) => {
     }));
 
     // Sort products by revenue descending
-    const topProducts = Object.values(productStats)
+    // Ensure every product appears in productStats, even with zero revenue
+Object.keys(productMeta).forEach(name => {
+  if (!productStats[name]) {
+    productStats[name] = {
+      name,
+      category: productMeta[name].category || 'General',
+      image: productMeta[name].image || null,
+      revenue: 0,
+      qtySold: 0
+    };
+  }
+});
+
+const topProducts = Object.values(productStats)
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 3); // Top 3
 
